@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards de Vocabulário Grego (Completo)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .greek-font { font-family: 'Cardo', serif; }
+        .scene { perspective: 1000px; }
+        .card { transform-style: preserve-3d; transition: transform 0.6s; cursor: pointer; }
+        .card.is-flipped { transform: rotateY(180deg); }
+        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+        .card-back { transform: rotateY(180deg); }
+        select {
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.2em; padding-right: 2.5rem;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md mx-auto">
+        <header class="text-center mb-4">
+            <h1 class="text-3xl font-bold text-slate-800">Flashcards de Vocabulário</h1>
+            <p id="paradigm-subtitle" class="text-md text-slate-600 mt-2 h-6"></p>
+        </header>
+
+        <div class="mb-4">
+            <label for="category-select" class="block text-sm font-medium text-slate-700 mb-1">Escolha a Categoria:</label>
+            <select id="category-select" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"></select>
+        </div>
+
+        <div class="scene w-full h-64 mb-4">
+            <div id="flashcard" class="card relative w-full h-full">
+                <div id="card-front" class="card-face absolute w-full h-full flex items-center justify-center bg-white rounded-xl shadow-lg border border-slate-200 p-4">
+                    <p class="text-5xl font-semibold text-center greek-font"></p>
+                </div>
+                <div id="card-back" class="card-face card-back absolute w-full h-full flex flex-col items-center justify-center text-white rounded-xl shadow-lg p-4">
+                    <div class="text-center w-full">
+                        <p id="vocab-lexical" class="greek-font text-3xl font-bold"></p>
+                        <p id="vocab-meaning" class="text-2xl italic mt-2"></p>
+                        <p id="vocab-freq" class="text-sm mt-4 rounded-full bg-black bg-opacity-20 px-2 py-1 inline-block"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between mb-4">
+            <button id="prev-btn" class="px-6 py-3 bg-white rounded-lg shadow-md font-semibold hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">Anterior</button>
+            <div id="card-counter" class="text-slate-600 font-medium"></div>
+            <button id="next-btn" class="px-6 py-3 bg-white rounded-lg shadow-md font-semibold hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200">Próximo</button>
+        </div>
+    </div>
+
+    <script>
+        const v = (lexical, meaning, freq) => ({ lexical, meaning, freq });
+
+        const vocabulary = {
+            "Substantivos": {
+                color: 'blue',
+                cards: [
+                    v('θεός, -οῦ, ὁ', 'Deus, deus', 1317), v('κύριος, -ου, ὁ', 'Senhor, senhor', 717), v('ἄνθρωπος, -ου, ὁ', 'homem, ser humano', 550), v('Χριστός, -οῦ, ὁ', 'Cristo, Messias', 529),
+                    v('υἱός, -οῦ, ὁ', 'filho', 377), v('πατήρ, πατρός, ὁ', 'pai', 413), v('πνεῦμα, -ατος, τό', 'espírito, fôlego, vento', 379), v('ἀδελφός, -οῦ, ὁ', 'irmão', 343),
+                    v('λόγος, -ου, ὁ', 'palavra, razão, verbo', 330), v('ἡμέρα, -ας, ἡ', 'dia', 389), v('γῆ, γῆς, ἡ', 'terra, solo', 250), v('μαθητής, -οῦ, ὁ', 'discípulo, aprendiz', 261),
+                    v('πίστις, -εως, ἡ', 'fé, confiança', 243), v('οὐρανός, -οῦ, ὁ', 'céu', 273), v('γυνή, γυναικός, ἡ', 'mulher, esposa', 215), v('ὄνομα, -ατος, τό', 'nome', 231),
+                    v('σάρξ, σαρκός, ἡ', 'carne', 147), v('νόμος, -ου, ὁ', 'lei, princípio', 194), v('κόσμος, -ου, ὁ', 'mundo, universo', 186), v('λαός, -οῦ, ὁ', 'povo', 142),
+                    v('πόλις, -εως, ἡ', 'cidade', 162), v('βασιλεία, -ας, ἡ', 'reino', 162), v('ἔργον, -ου, τό', 'obra, trabalho, ação', 169), v('καρδία, -ας, ἡ', 'coração', 156),
+                    v('χάρις, -ιτος, ἡ', 'graça, favor', 155), v('Ἰουδαῖος, -ου, ὁ', 'judeu', 195), v('σῶμα, -ατος, τό', 'corpo', 142), v('φωνή, -ῆς, ἡ', 'voz, som', 139),
+                    v('αἷμα, -ατος, τό', 'sangue', 97), v('ἁμαρτία, -ας, ἡ', 'pecado', 173), v('θάνατος, -ου, ὁ', 'morte', 120), v('ἄρτος, -ου, ὁ', 'pão', 97),
+                    v('δόξα, -ης, ἡ', 'glória, majestade', 166), v('ἐκκλησία, -ας, ἡ', 'igreja, assembleia', 114), v('βασιλεύς, -έως, ὁ', 'rei', 115), v('ἀνήρ, ἀνδρός, ὁ', 'homem, marido', 216),
+                    v('ὄχλος, -ου, ὁ', 'multidão', 175), v('δύναμις, -εως, ἡ', 'poder, milagre', 119), v('νύξ, νυκτός, ἡ', 'noite', 61), v('ἀρχή, -ῆς, ἡ', 'começo, governante', 55),
+                    v('σάββατον, -ου, τό', 'sábado, semana', 68), v('συναγωγή, -ῆς, ἡ', 'sinagoga', 56), v('θάλασσα, -ης, ἡ', 'mar, lago', 91), v('λίθος, -ου, ὁ', 'pedra', 59),
+                    v('τόπος, -ου, ὁ', 'lugar, local', 94), v('προφήτης, -ου, ὁ', 'profeta', 144), v('στόμα, -ατος, τό', 'boca', 78), v('οἶκος, -ου, ὁ', 'casa, família', 114),
+                    v('ὀφθαλμός, -οῦ, ὁ', 'olho', 100), v('ψυχή, -ῆς, ἡ', 'alma, vida, eu', 103)
+                ]
+            },
+            "Verbos": {
+                color: 'red',
+                cards: [
+                    v('εἰμί', 'ser, estar, existir', 2462), v('λέγω', 'dizer, falar', 2353), v('ἔχω', 'ter, segurar', 708), v('ποιέω', 'fazer, criar', 568),
+                    v('γίνομαι', 'tornar-se, acontecer', 669), v('ἔρχομαι', 'vir, ir', 632), v('ὁράω', 'ver, perceber', 454), v('ἀκούω', 'ouvir, escutar', 428),
+                    v('δίδωμι', 'dar, conceder', 415), v('οἶδα', 'saber, conhecer', 318), v('λαμβάνω', 'tomar, receber', 258), v('πιστεύω', 'crer, ter fé', 241),
+                    v('ἀποκρίνομαι', 'responder', 231), v('γινώσκω', 'conhecer, saber', 222), v('ἐξέρχομαι', 'sair', 218), v('θέλω', 'querer, desejar', 208),
+                    v('δύναμαι', 'poder, ser capaz', 210), v('γράφω', 'escrever', 191), v('ἀποστέλλω', 'enviar', 132), v('μένω', 'permanecer, ficar', 118),
+                    v('αἴρω', 'levantar, tirar', 101), v('περιπατέω', 'andar, viver', 95), v('ζητέω', 'procurar, buscar', 117), v('ἀγαπάω', 'amar', 143),
+                    v('ἀποθνῄσκω', 'morrer', 111), v('βλέπω', 'ver, olhar', 132), v('εὑρίσκω', 'achar, descobrir', 176), v('καλέω', 'chamar, nomear', 148),
+                    v('λαλέω', 'falar, dizer', 296), v('παρακαλέω', 'exortar, consolar', 109), v('σῴζω', 'salvar, curar', 106), v('τηρέω', 'guardar, observar', 70),
+                    v('φοβέομαι', 'temer', 95), v('κρίνω', 'julgar, decidir', 114), v('ἀναβαίνω', 'subir', 82), v('ἀπέρχομαι', 'ir embora, partir', 117),
+                    v('εἰσέρχομαι', 'entrar', 194), v('καταβαίνω', 'descer', 81), v('προσέρχομαι', 'aproximar-se, vir a', 86), v('προσεύχομαι', 'orar', 85),
+                    v('ἀκολουθέω', 'seguir', 90), v('διδάσκω', 'ensinar', 97), v('ἐγείρω', 'levantar, ressuscitar', 144), v('κηρύσσω', 'pregar, proclamar', 61),
+                    v('πίνω', 'beber', 73), v('προσκυνέω', 'adorar', 60), v('ὑπάρχω', 'ser, existir', 60), v('ἄγω', 'levar, trazer', 67),
+                    v('βάλλω', 'lançar, jogar', 122), v('δοξάζω', 'glorificar', 61), v('μαρτυρέω', 'testemunhar', 76), v('ἐσθίω', 'comer', 158)
+                ]
+            },
+            "Adjetivos": {
+                color: 'green',
+                cards: [
+                    v('πᾶς, πᾶσα, πᾶν', 'todo, cada', 1243), v('πολύς, πολλή, πολύ', 'muito, numeroso', 416), v('μέγας, μεγάλη, μέγα', 'grande', 243), v('ἅγιος, -α, -ον', 'santo', 233),
+                    v('ἀγαθός, -ή, -όν', 'bom', 102), v('νεκρός, -ά, -όν', 'morto', 128), v('πιστός, -ή, -όν', 'fiel, crente', 67), v('πρῶτος, -η, -ον', 'primeiro', 155),
+                    v('δίκαιος, -α, -ον', 'justo, reto', 79), v('ἕτερος, -α, -ον', 'outro, diferente', 98), v('ἴδιος, -α, -ον', 'próprio', 114), v('κακός, -ή, -όν', 'mau, mal', 50),
+                    v('μόνος, -η, -ον', 'só, único', 114), v('πνευματικός, -ή, -όν', 'espiritual', 26), v('σοφός, -ή, -όν', 'sábio', 20), v('ἀληθής, -ές', 'verdadeiro', 26),
+                    v('αἰώνιος, -ον', 'eterno', 71), v('ἕκαστος, -η, -ον', 'cada um', 82), v('μικρός, -ά, -όν', 'pequeno', 46), v('καλός, -ή, -όν', 'bom, belo', 101),
+                    v('ἀγαπητός, -ή, -όν', 'amado', 61), v('τυφλός, -ή, -όν', 'cego', 50), v('λοιπός, -ή, -όν', 'restante, o resto', 55), v('πλούσιος, -α, -ον', 'rico', 28),
+                    v('πτωχός, -ή, -όν', 'pobre', 34), v('δεξιός, -ά, -όν', 'direito (lado)', 54), v('τρίτος, -η, -ον', 'terceiro', 56), v('ἕτοιμος, -η, -ον', 'pronto, preparado', 17),
+                    v('ἱκανός, -ή, -όν', 'suficiente, capaz', 39), v('μακάριος, -α, -ον', 'bem-aventurado, feliz', 50), v('ξένος, -η, -ον', 'estranho, estrangeiro', 14), v('ὅλος, -η, -ον', 'todo, inteiro', 109),
+                    v('πονηρός, -ά, -όν', 'mau, maligno', 78), v('τέλειος, -α, -ον', 'perfeito, completo', 19), v('χρήστος, -ή, -όν', 'bondoso, bom', 7)
+                ]
+            },
+            "Advérbios e Partículas": {
+                color: 'purple',
+                cards: [
+                    v('καί', 'e, também', 9153), v('δέ', 'mas, e, então', 2792), v('γάρ', 'pois, porque', 1041), v('οὖν', 'portanto, então', 499),
+                    v('οὐ, οὐκ, οὐχ', 'não', 1623), v('μή', 'não (em proibições, etc.)', 1042), v('νῦν', 'agora', 147), v('ὅτι', 'que, porque', 1296),
+                    v('ὡς', 'como, assim como, quando', 504), v('πάλιν', 'novamente', 141), v('πολύ', 'muito', 49), v('καλῶς', 'bem', 37),
+                    v('οὕτως', 'assim, desta maneira', 208), v('εὐθύς', 'imediatamente', 80), v('τότε', 'então, naquela época', 160), v('ἐκεῖ', 'ali, lá', 105),
+                    v('ὧδε', 'aqui', 61), v('σήμερον', 'hoje', 41), v('ἔτι', 'ainda, mais', 93), v('πῶς', 'como?', 103),
+                    v('ποῦ', 'onde?', 48), v('πότε', 'quando?', 32), v('ἄν', '(partícula intraduzível)', 166), v('ἄρα', 'então, portanto', 49),
+                    v('εἰ', 'se (condicional)', 503), v('ἐάν', 'se (condicional com subj.)', 351), v('ἵνα', 'para que, a fim de que', 663), v('ὅταν', 'quando, sempre que', 123),
+                    v('ὅπου', 'onde, aonde', 82), v('ἔξω', 'fora', 63), v('ἔσω', 'dentro', 13), v('μάλιστα', 'especialmente', 12),
+                    v('μᾶλλον', 'mais, antes', 81), v('πάντοτε', 'sempre', 41), v('πλήν', 'exceto, mas', 31), v('πρίν', 'antes', 13),
+                    v('χωρίς', 'sem, à parte de', 41), v('ἀμήν', 'amém, em verdade', 129), v('ἔμπροσθεν', 'diante de', 48), v('ἕως', 'até', 146),
+                    v('ναί', 'sim', 33), v('οὐδέ', 'e não, nem', 134), v('οὐκέτι', 'não mais', 47), v('περισσότερον', 'mais abundantemente', 19)
+                ]
+            }
+        };
+
+        let currentCategoryName = Object.keys(vocabulary)[0];
+        let currentCardIndex = 0;
+        let isFlipped = false;
+
+        const card = document.getElementById('flashcard');
+        const cardFrontText = document.querySelector('#card-front p');
+        const vocabLexicalEl = document.getElementById('vocab-lexical');
+        const vocabMeaningEl = document.getElementById('vocab-meaning');
+        const vocabFreqEl = document.getElementById('vocab-freq');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const cardCounter = document.getElementById('card-counter');
+        const categorySelect = document.getElementById('category-select');
+        const paradigmSubtitle = document.getElementById('paradigm-subtitle');
+
+        function updateTheme(color) {
+            const finalColor = color || 'slate';
+            cardFrontText.className = 'text-5xl font-semibold text-center greek-font';
+            document.querySelector('#card-back').className = `card-face card-back absolute w-full h-full flex flex-col items-center justify-center text-white rounded-xl shadow-lg p-4 bg-${finalColor}-600`;
+            cardFrontText.classList.add(`text-${finalColor}-700`);
+        }
+
+        function updateCardContent() {
+            const categoryData = vocabulary[currentCategoryName];
+            const currentCardData = categoryData.cards[currentCardIndex];
+            
+            const lexicalForm = currentCardData.lexical.split(',')[0];
+            cardFrontText.textContent = lexicalForm;
+            
+            vocabLexicalEl.textContent = currentCardData.lexical;
+            vocabMeaningEl.textContent = currentCardData.meaning;
+            vocabFreqEl.textContent = `Ocorrências: ${currentCardData.freq}`;
+
+            cardCounter.textContent = `${currentCardIndex + 1} / ${categoryData.cards.length}`;
+            prevBtn.disabled = currentCardIndex === 0;
+            nextBtn.disabled = currentCardIndex === categoryData.cards.length - 1;
+        }
+        
+        function flipCard() {
+            isFlipped = !isFlipped;
+            card.classList.toggle('is-flipped');
+        }
+
+        function loadCategory(name) {
+            if (isFlipped) flipCard();
+            currentCategoryName = name;
+            currentCardIndex = 0;
+            const categoryData = vocabulary[name];
+            paradigmSubtitle.innerHTML = `Vocabulário: <span class="font-bold">${name}</span>`;
+            
+            updateTheme(categoryData.color);
+            setTimeout(updateCardContent, isFlipped ? 300 : 0);
+        }
+
+        function showNextCard() {
+            const currentCards = vocabulary[currentCategoryName].cards;
+            if (currentCardIndex < currentCards.length - 1) {
+                currentCardIndex++;
+                if (isFlipped) {
+                    flipCard();
+                    setTimeout(updateCardContent, 300);
+                } else {
+                    updateCardContent();
+                }
+            }
+        }
+
+        function showPrevCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                if (isFlipped) {
+                    flipCard();
+                    setTimeout(updateCardContent, 300);
+                } else {
+                    updateCardContent();
+                }
+            }
+        }
+        
+        function populateSelect() {
+            categorySelect.innerHTML = '';
+            for (const categoryName in vocabulary) {
+                const option = document.createElement('option');
+                option.value = categoryName;
+                option.textContent = categoryName;
+                categorySelect.appendChild(option);
+            }
+        }
+
+        card.addEventListener('click', flipCard);
+        nextBtn.addEventListener('click', showNextCard);
+        prevBtn.addEventListener('click', showPrevCard);
+        categorySelect.addEventListener('change', (e) => {
+            loadCategory(e.target.value);
+        });
+
+        window.onload = () => {
+            populateSelect();
+            loadCategory(currentCategoryName);
+        };
+    </script>
+</body>
+</html>
