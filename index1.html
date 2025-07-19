@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards de Grego Coinê: Declinações</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+        .greek-font {
+            font-family: 'Cardo', serif;
+        }
+        .scene {
+            perspective: 1000px;
+        }
+        .card {
+            transform-style: preserve-3d;
+            transition: transform 0.6s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+        .card.is-flipped {
+            transform: rotateY(180deg);
+        }
+        .card-face {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .card-back {
+            transform: rotateY(180deg);
+        }
+        /* Estilos para o select customizado */
+        select {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1.2em;
+            padding-right: 2.5rem;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md mx-auto">
+        <header class="text-center mb-4">
+            <h1 class="text-3xl font-bold text-slate-800">Flashcards de Grego Coinê</h1>
+            <p id="paradigm-subtitle" class="text-md text-slate-600 mt-1"></p>
+        </header>
+
+        <!-- Controles -->
+        <div class="mb-4">
+            <label for="paradigm-select" class="block text-sm font-medium text-slate-700 mb-1">Escolha o Paradigma:</label>
+            <select id="paradigm-select" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"></select>
+        </div>
+
+        <!-- Cena do Cartão -->
+        <div class="scene w-full h-64 mb-4">
+            <div id="flashcard" class="card relative w-full h-full">
+                <div id="card-front" class="card-face absolute w-full h-full flex items-center justify-center bg-white rounded-xl shadow-lg border border-slate-200">
+                    <div class="text-center p-4">
+                        <p class="text-3xl font-semibold"></p>
+                    </div>
+                </div>
+                <div id="card-back" class="card-face card-back absolute w-full h-full flex items-center justify-center text-white rounded-xl shadow-lg">
+                    <div class="text-center p-4">
+                        <p class="greek-font text-4xl font-bold mb-2"></p>
+                        <p class="text-lg mb-4"></p>
+                        <p class="text-md italic"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Navegação -->
+        <div class="flex items-center justify-between">
+            <button id="prev-btn" class="px-6 py-3 bg-white rounded-lg shadow-md font-semibold hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">Anterior</button>
+            <div id="card-counter" class="text-slate-600 font-medium"></div>
+            <button id="next-btn" class="px-6 py-3 bg-white rounded-lg shadow-md font-semibold hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200">Próximo</button>
+        </div>
+    </div>
+
+    <script>
+        // --- Estrutura de Dados Completa ---
+        const paradigms = {
+            '2ª Decl. Masc. (λόγος)': {
+                color: 'indigo',
+                cards: [
+                    { front: 'Nominativo Singular', back: { greek: 'ὁ λόγος', translit: '(ho logos)', func: 'Função: Sujeito' }},
+                    { front: 'Genitivo Singular', back: { greek: 'τοῦ λόγου', translit: '(tou logou)', func: 'Função: Posse' }},
+                    { front: 'Dativo Singular', back: { greek: 'τῷ λόγῳ', translit: '(tōi logōi)', func: 'Função: Obj. Indireto' }},
+                    { front: 'Acusativo Singular', back: { greek: 'τὸν λόγον', translit: '(ton logon)', func: 'Função: Obj. Direto' }},
+                    { front: 'Vocativo Singular', back: { greek: 'λόγε', translit: '(loge)', func: 'Função: Chamamento' }},
+                    { front: 'Nominativo Plural', back: { greek: 'οἱ λόγοι', translit: '(hoi logoi)', func: 'Função: Sujeito' }},
+                    { front: 'Genitivo Plural', back: { greek: 'τῶν λόγων', translit: '(tōn logōn)', func: 'Função: Posse' }},
+                    { front: 'Dativo Plural', back: { greek: 'τοῖς λόγοις', translit: '(tois logois)', func: 'Função: Obj. Indireto' }},
+                    { front: 'Acusativo Plural', back: { greek: 'τοὺς λόγους', translit: '(tous logous)', func: 'Função: Obj. Direto' }},
+                    { front: 'Vocativo Plural', back: { greek: 'λόγοι', translit: '(logoi)', func: 'Função: Chamamento' }},
+                ]
+            },
+            '2ª Decl. Neut. (δῶρον)': {
+                color: 'teal',
+                cards: [
+                    { front: 'Nom/Acus Singular', back: { greek: 'τὸ δῶρον', translit: '(to dōron)', func: 'Função: Sujeito/Obj. Direto' }},
+                    { front: 'Genitivo Singular', back: { greek: 'τοῦ δώρου', translit: '(tou dōrou)', func: 'Função: Posse' }},
+                    { front: 'Dativo Singular', back: { greek: 'τῷ δώρῳ', translit: '(tōi dōrōi)', func: 'Função: Obj. Indireto' }},
+                    { front: 'Vocativo Singular', back: { greek: 'δῶρον', translit: '(dōron)', func: 'Função: Chamamento' }},
+                    { front: 'Nom/Acus Plural', back: { greek: 'τὰ δῶρα', translit: '(ta dōra)', func: 'Função: Sujeito/Obj. Direto' }},
+                    { front: 'Genitivo Plural', back: { greek: 'τῶν δώρων', translit: '(tōn dōrōn)', func: 'Função: Posse' }},
+                    { front: 'Dativo Plural', back: { greek: 'τοῖς δώροις', translit: '(tois dōrois)', func: 'Função: Obj. Indireto' }},
+                    { front: 'Vocativo Plural', back: { greek: 'δῶρα', translit: '(dōra)', func: 'Função: Chamamento' }},
+                ]
+            },
+            '1ª Decl. Fem. (δόξα)': {
+                color: 'purple',
+                cards: [
+                    { front: 'Nominativo Singular', back: { greek: 'ἡ δόξα', translit: '(hē doxa)', func: 'Função: Sujeito' }},
+                    { front: 'Genitivo Singular', back: { greek: 'τῆς δόξης', translit: '(tēs doxēs)', func: 'Função: Posse' }},
+                    { front: 'Dativo Singular', back: { greek: 'τῇ δόξῃ', translit: '(tēi doxēi)', func: 'Função: Obj. Indireto' }},
+                    { front: 'Acusativo Singular', back: { greek: 'τὴν δόξαν', translit: '(tēn doxan)', func: 'Função: Obj. Direto' }},
+                    { front: 'Vocativo Singular', back: { greek: 'δόξα', translit: '(doxa)', func: 'Função: Chamamento' }},
+                    { front: 'Nominativo Plural', back: { greek: 'αἱ δόξαι', translit: '(hai doxai)', func: 'Função: Sujeito' }},
+                    { front: 'Genitivo Plural', back: { greek: 'τῶν δοξῶν', translit: '(tōn doxōn)', func: 'Função: Posse' }},
+                    { front: 'Dativo Plural', back: { greek: 'ταῖς δόξαις', translit: '(tais doxais)', func: 'Função: Obj. Indireto' }},
+                    { front: 'Acusativo Plural', back: { greek: 'τὰς δόξας', translit: '(tas doxas)', func: 'Função: Obj. Direto' }},
+                    { front: 'Vocativo Plural', back: { greek: 'δόξαι', translit: '(doxai)', func: 'Função: Chamamento' }},
+                ]
+            },
+            '1ª Decl. Fem. (γραφή)': {
+                color: 'rose',
+                cards: [
+                    { front: 'Nominativo Singular', back: { greek: 'ἡ γραφή', translit: '(hē graphē)', func: 'Função: Sujeito' }},
+                    { front: 'Genitivo Singular', back: { greek: 'τῆς γραφῆς', translit: '(tēs graphēs)', func: 'Função: Posse' }},
+                    { front: 'Dativo Singular', back: { greek: 'τῇ γραφῇ', translit: '(tēi graphēi)', func: 'Função: Obj. Indireto' }},
+                    { front: 'Acusativo Singular', back: { greek: 'τὴν γραφήν', translit: '(tēn graphēn)', func: 'Função: Obj. Direto' }},
+                    { front: 'Vocativo Singular', back: { greek: 'γραφή', translit: '(graphē)', func: 'Função: Chamamento' }},
+                    { front: 'Nominativo Plural', back: { greek: 'αἱ γραφαί', translit: '(hai graphai)', func: 'Função: Sujeito' }},
+                    { front: 'Genitivo Plural', back: { greek: 'τῶν γραφῶν', translit: '(tōn graphōn)', func: 'Função: Posse' }},
+                    { front: 'Dativo Plural', back: { greek: 'ταῖς γραφαῖς', translit: '(tais graphais)', func: 'Função: Obj. Indireto' }},
+                    { front: 'Acusativo Plural', back: { greek: 'τὰς γραφάς', translit: '(tas graphas)', func: 'Função: Obj. Direto' }},
+                    { front: 'Vocativo Plural', back: { greek: 'γραφαί', translit: '(graphai)', func: 'Função: Chamamento' }},
+                ]
+            },
+            '3ª Decl. M/F Gutural (σάρξ)': {
+                color: 'slate',
+                cards: [
+                    { front: 'Nominativo Singular', back: { greek: 'ἡ σάρξ', translit: '(hē sarx)', func: 'Radical: σαρκ-' }},
+                    { front: 'Genitivo Singular', back: { greek: 'τῆς σαρκός', translit: '(tēs sarkos)', func: 'Função: Posse' }},
+                    { front: 'Dativo Singular', back: { greek: 'τῇ σαρκί', translit: '(tēi sarki)', func: 'Função: Obj. Indireto' }},
+                    { front: 'Acusativo Singular', back: { greek: 'τὴν σάρκα', translit: '(tēn sarka)', func: 'Função: Obj. Direto' }},
+                    { front: 'Vocativo Singular', back: { greek: 'σάρξ', translit: '(sarx)', func: 'Função: Chamamento' }},
+                    { front: 'Nominativo Plural', back: { greek: 'αἱ σάρκες', translit: '(hai sarkes)', func: 'Função: Sujeito' }},
+                    { front: 'Genitivo Plural', back: { greek: 'τῶν σαρκῶν', translit: '(tōn sarkōn)', func: 'Função: Posse' }},
+                    { front: 'Dativo Plural', back: { greek: 'ταῖς σαρξίν', translit: '(tais sarxin)', func: 'Função: Obj. Indireto' }},
+                    { front: 'Acusativo Plural', back: { greek: 'τὰς σάρκας', translit: '(tas sarkas)', func: 'Função: Obj. Direto' }},
+                    { front: 'Vocativo Plural', back: { greek: 'σάρκες', translit: '(sarkes)', func: 'Função: Chamamento' }},
+                ]
+            },
+            '3ª Decl. Neut. Dental (ὄνομα)': {
+                color: 'orange',
+                cards: [
+                    { front: 'Nom/Acus Singular', back: { greek: 'τὸ ὄνομα', translit: '(to onoma)', func: 'Radical: ὀνοματ-' }},
+                    { front: 'Genitivo Singular', back: { greek: 'τοῦ ὀνόματος', translit: '(tou onomatos)', func: 'Função: Posse' }},
+                    { front: 'Dativo Singular', back: { greek: 'τῷ ὀνόματι', translit: '(tōi onomati)', func: 'Função: Obj. Indireto' }},
+                    { front: 'Vocativo Singular', back: { greek: 'ὄνομα', translit: '(onoma)', func: 'Função: Chamamento' }},
+                    { front: 'Nom/Acus Plural', back: { greek: 'τὰ ὀνόματα', translit: '(ta onomata)', func: 'Função: Sujeito/Obj. Direto' }},
+                    { front: 'Genitivo Plural', back: { greek: 'τῶν ὀνομάτων', translit: '(tōn onomatōn)', func: 'Função: Posse' }},
+                    { front: 'Dativo Plural', back: { greek: 'τοῖς ὀνόμασιν', translit: '(tois onomasin)', func: 'Função: Obj. Indireto' }},
+                    { front: 'Vocativo Plural', back: { greek: 'ὀνόματα', translit: '(onomata)', func: 'Função: Chamamento' }},
+                ]
+            },
+            '3ª Decl. Fem. Vocálico (πόλις)': {
+                color: 'sky',
+                cards: [
+                    { front: 'Nominativo Singular', back: { greek: 'ἡ πόλις', translit: '(hē polis)', func: 'Radical: πολι-' }},
+                    { front: 'Genitivo Singular', back: { greek: 'τῆς πόλεως', translit: '(tēs poleōs)', func: 'Função: Posse' }},
+                    { front: 'Dativo Singular', back: { greek: 'τῇ πόλει', translit: '(tēi polei)', func: 'Função: Obj. Indireto' }},
+                    { front: 'Acusativo Singular', back: { greek: 'τὴν πόλιν', translit: '(tēn polin)', func: 'Função: Obj. Direto' }},
+                    { front: 'Vocativo Singular', back: { greek: 'πόλι', translit: '(poli)', func: 'Função: Chamamento' }},
+                    { front: 'Nominativo Plural', back: { greek: 'αἱ πόλεις', translit: '(hai poleis)', func: 'Função: Sujeito' }},
+                    { front: 'Genitivo Plural', back: { greek: 'τῶν πόλεων', translit: '(tōn poleōn)', func: 'Função: Posse' }},
+                    { front: 'Dativo Plural', back: { greek: 'ταῖς πόλεσιν', translit: '(tais polesin)', func: 'Função: Obj. Indireto' }},
+                    { front: 'Acusativo Plural', back: { greek: 'τὰς πόλεις', translit: '(tas poleis)', func: 'Função: Obj. Direto' }},
+                    { front: 'Vocativo Plural', back: { greek: 'πόλεις', translit: '(poleis)', func: 'Função: Chamamento' }},
+                ]
+            }
+        };
+
+        // --- Variáveis de Estado ---
+        let currentParadigmName = Object.keys(paradigms)[0];
+        let currentCardIndex = 0;
+        let isFlipped = false;
+
+        // --- Seletores de Elementos do DOM ---
+        const card = document.getElementById('flashcard');
+        const cardFront = document.getElementById('card-front');
+        const cardFrontText = document.querySelector('#card-front p');
+        const cardBack = document.getElementById('card-back');
+        const cardBackGreek = document.querySelector('#card-back .greek-font');
+        const cardBackTranslit = document.querySelector('#card-back .text-lg');
+        const cardBackFunc = document.querySelector('#card-back .italic');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const cardCounter = document.getElementById('card-counter');
+        const paradigmSelect = document.getElementById('paradigm-select');
+        const paradigmSubtitle = document.getElementById('paradigm-subtitle');
+
+        // --- Funções ---
+        
+        function updateTheme(color) {
+            const colorClasses = {
+                frontText: `text-${color}-700`,
+                backBg: `bg-${color}-600`,
+                backText: `text-${color}-200`,
+                focusRing: `focus:ring-${color}-500`
+            };
+
+            // Remove classes antigas
+            cardFrontText.className = 'text-3xl font-semibold';
+            cardBack.className = 'card-face card-back absolute w-full h-full flex items-center justify-center text-white rounded-xl shadow-lg';
+            cardBackTranslit.className = 'text-lg mb-4';
+            prevBtn.className = prevBtn.className.replace(/focus:ring-\w+-\d+/g, '');
+            nextBtn.className = nextBtn.className.replace(/focus:ring-\w+-\d+/g, '');
+
+            // Adiciona novas classes
+            cardFrontText.classList.add(colorClasses.frontText);
+            cardBack.classList.add(colorClasses.backBg);
+            cardBackTranslit.classList.add(colorClasses.backText);
+            prevBtn.classList.add(colorClasses.focusRing);
+            nextBtn.classList.add(colorClasses.focusRing);
+        }
+
+        function updateCardContent() {
+            const currentCards = paradigms[currentParadigmName].cards;
+            const currentCardData = currentCards[currentCardIndex];
+            
+            cardFrontText.textContent = currentCardData.front;
+            cardBackGreek.textContent = currentCardData.back.greek;
+            cardBackTranslit.textContent = currentCardData.back.translit;
+            cardBackFunc.textContent = currentCardData.back.func;
+            cardCounter.textContent = `${currentCardIndex + 1} / ${currentCards.length}`;
+            
+            prevBtn.disabled = currentCardIndex === 0;
+            nextBtn.disabled = currentCardIndex === currentCards.length - 1;
+        }
+        
+        function flipCard() {
+            isFlipped = !isFlipped;
+            card.classList.toggle('is-flipped');
+        }
+
+        function loadParadigm(name) {
+            if (isFlipped) {
+                flipCard();
+            }
+            
+            currentParadigmName = name;
+            currentCardIndex = 0;
+            
+            const paradigmData = paradigms[name];
+            const paradigmWord = name.substring(name.indexOf('(') + 1, name.indexOf(')'));
+            
+            paradigmSubtitle.innerHTML = `${name.split(' (')[0]}: <span class="greek-font font-bold">${paradigmWord}</span>`;
+            
+            updateTheme(paradigmData.color);
+            setTimeout(updateCardContent, isFlipped ? 300 : 0);
+        }
+
+        function showNextCard() {
+            const currentCards = paradigms[currentParadigmName].cards;
+            if (currentCardIndex < currentCards.length - 1) {
+                currentCardIndex++;
+                if (isFlipped) {
+                    flipCard();
+                    setTimeout(updateCardContent, 300);
+                } else {
+                    updateCardContent();
+                }
+            }
+        }
+
+        function showPrevCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                if (isFlipped) {
+                    flipCard();
+                    setTimeout(updateCardContent, 300);
+                } else {
+                    updateCardContent();
+                }
+            }
+        }
+        
+        function populateSelect() {
+            Object.keys(paradigms).forEach(name => {
+                const option = document.createElement('option');
+                option.value = name;
+                option.textContent = name;
+                paradigmSelect.appendChild(option);
+            });
+        }
+
+        // --- Event Listeners ---
+        card.addEventListener('click', flipCard);
+        nextBtn.addEventListener('click', showNextCard);
+        prevBtn.addEventListener('click', showPrevCard);
+        paradigmSelect.addEventListener('change', (e) => loadParadigm(e.target.value));
+
+        // --- Inicialização ---
+        window.onload = () => {
+            populateSelect();
+            loadParadigm(currentParadigmName);
+        };
+
+    </script>
+</body>
+</html>

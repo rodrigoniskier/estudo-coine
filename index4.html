@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards de Verbos em Grego (Análise Morfológica)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .greek-font { font-family: 'Cardo', serif; }
+        .scene { perspective: 1000px; }
+        .card { transform-style: preserve-3d; transition: transform 0.6s; cursor: pointer; }
+        .card.is-flipped { transform: rotateY(180deg); }
+        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+        .card-back { transform: rotateY(180deg); }
+        select {
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.2em; padding-right: 2.5rem;
+        }
+        .icon-container svg { width: 1.25rem; height: 1.25rem; }
+        /* Cores para análise morfológica */
+        .part-prefix { color: #facc15; } /* Amarelo para Aumento/Reduplicação */
+        .part-root { color: #ffffff; font-weight: bold; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); } /* Branco para Raiz */
+        .part-tense_voice { color: #fca5a5; } /* Vermelho claro para Formativo de Tempo/Voz */
+        .part-connective { color: #93c5fd; } /* Azul claro para Vogal de Ligação */
+        .part-ending { color: #86efac; } /* Verde claro para Desinência */
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md mx-auto">
+        <header class="text-center mb-4">
+            <h1 class="text-3xl font-bold text-slate-800">Flashcards de Verbos em Grego</h1>
+            <div class="flex items-center justify-center mt-2 space-x-2 h-8">
+                <p id="paradigm-subtitle" class="text-md text-slate-600"></p>
+                <div id="icon-display" class="flex space-x-1.5"></div>
+            </div>
+        </header>
+
+        <div class="mb-4">
+            <label for="paradigm-select" class="block text-sm font-medium text-slate-700 mb-1">Escolha o Paradigma:</label>
+            <select id="paradigm-select" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"></select>
+        </div>
+
+        <div class="scene w-full h-64 mb-4">
+            <div id="flashcard" class="card relative w-full h-full">
+                <div id="card-front" class="card-face absolute w-full h-full flex items-center justify-center bg-white rounded-xl shadow-lg border border-slate-200 p-4">
+                    <p class="text-3xl font-semibold text-center"></p>
+                </div>
+                <div id="card-back" class="card-face card-back absolute w-full h-full flex items-center justify-center text-white rounded-xl shadow-lg p-4">
+                    <div class="text-center">
+                        <div id="greek-word-parts" class="greek-font text-4xl font-bold mb-2"></div>
+                        <p class="text-lg mb-4" id="translit"></p>
+                        <p class="text-md italic" id="func"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between mb-4">
+            <button id="prev-btn" class="px-6 py-3 bg-white rounded-lg shadow-md font-semibold hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">Anterior</button>
+            <div id="card-counter" class="text-slate-600 font-medium"></div>
+            <button id="next-btn" class="px-6 py-3 bg-white rounded-lg shadow-md font-semibold hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200">Próximo</button>
+        </div>
+        
+        <!-- Legenda de Cores -->
+        <div class="p-3 bg-white rounded-lg shadow-md text-xs text-slate-600">
+            <h4 class="font-bold text-sm text-slate-800 mb-2 text-center">Legenda Morfológica</h4>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-1">
+                <div><span class="part-prefix font-bold p-1 rounded bg-slate-700">Prefixo</span>: Aumento/Redupl.</div>
+                <div><span class="part-root font-bold p-1 rounded bg-slate-700">Raiz</span>: Núcleo do verbo</div>
+                <div><span class="part-tense_voice font-bold p-1 rounded bg-slate-700">Formativo</span>: Marca de Tempo/Voz</div>
+                <div><span class="part-connective font-bold p-1 rounded bg-slate-700">Vogal</span>: Vogal de Ligação</div>
+                <div><span class="part-ending font-bold p-1 rounded bg-slate-700">Sufixo</span>: Desinência Pessoal</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const icons = {
+            presente: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-500"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`, title: 'Presente' },
+            imperfeito: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-orange-500"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>`, title: 'Imperfeito' },
+            futuro: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-violet-500"><polyline points="15 18 21 12 15 6"></polyline><polyline points="3 18 9 12 3 6"></polyline></svg>`, title: 'Futuro' },
+            aoristo: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-red-500"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>`, title: 'Aoristo' },
+            perfeito: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-emerald-500"><polyline points="20 6 9 17 4 12"></polyline></svg>`, title: 'Perfeito' },
+            maisqueperfeito: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-amber-600"><path d="M13 17l5-5-5-5M6 17l5-5-5-5"></path></svg>`, title: 'Mais-que-perfeito' },
+            indicativo: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-green-500"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="3"></circle></svg>`, title: 'Indicativo' },
+            subjuntivo: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-cyan-500"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>`, title: 'Subjuntivo' },
+            optativo: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-fuchsia-500"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>`, title: 'Optativo' },
+            imperativo: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-rose-500"><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path><path d="M12 8v4m0 4h.01"></path></svg>`, title: 'Imperativo' },
+            ativo: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-sky-500"><path d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>`, title: 'Ativa' },
+            medio: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-lime-500"><path d="M15 12H3m12 0l-4 4m4-4l-4-4"></path><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z"></path></svg>`, title: 'Média' },
+            passivo: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-pink-500"><path d="M7 16l-4-4m0 0l4-4m-4 4h18"></path></svg>`, title: 'Passiva' },
+            infinitivo: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-gray-500"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.72"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.72-1.72"></path></svg>`, title: 'Infinitivo' },
+            participio: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-indigo-500"><path d="M21.73 18a2.64 2.64 0 0 0-3.72 0l-1.15 1.14a2.64 2.64 0 0 1-3.72 0l-1.15-1.14a2.64 2.64 0 0 0-3.72 0l-1.15 1.14a2.64 2.64 0 0 1-3.72 0L2.27 18"></path><path d="M21.73 12a2.64 2.64 0 0 0-3.72 0l-1.15 1.14a2.64 2.64 0 0 1-3.72 0l-1.15-1.14a2.64 2.64 0 0 0-3.72 0l-1.15 1.14a2.64 2.64 0 0 1-3.72 0L2.27 12"></path><path d="M21.73 6a2.64 2.64 0 0 0-3.72 0l-1.15 1.14a2.64 2.64 0 0 1-3.72 0L12.01 6a2.64 2.64 0 0 0-3.72 0l-1.15 1.14a2.64 2.64 0 0 1-3.72 0L2.27 6"></path></svg>`, title: 'Particípio' },
+        };
+        
+        const R = (text) => ({ text, type: 'root' });
+        const P = (text) => ({ text, type: 'prefix' });
+        const T = (text) => ({ text, type: 'tense_voice' });
+        const C = (text) => ({ text, type: 'connective' });
+        const E = (text) => ({ text, type: 'ending' });
+
+        const p = (front, parts, translit, func) => ({ front, back: { greek: parts, translit, func } });
+
+        const paradigms = {
+            "Sistema do Presente": {
+                'Presente Indicativo Ativo': {
+                    icons: [icons.presente, icons.indicativo, icons.ativo],
+                    cards: [ p('1ª Sing', [R('λυ'), C('ο'), E('μεν')], 'luō', 'Eu solto'), p('2ª Sing', [R('λυ'), E('εις')], 'lueis', 'Tu soltas'), p('3ª Sing', [R('λυ'), E('ει')], 'luei', 'Ele/a solta'), p('1ª Plur', [R('λυ'), C('ο'), E('μεν')], 'luomen', 'Nós soltamos'), p('2ª Plur', [R('λυ'), E('ετε')], 'luete', 'Vós soltais'), p('3ª Plur', [R('λυ'), C('ο'), E('νσι(ν)')], 'luousi(n)', 'Eles/as soltam') ]
+                },
+                'Presente Indicativo Méd/Pass': {
+                    icons: [icons.presente, icons.indicativo, icons.medio, icons.passivo],
+                    cards: [ p('1ª Sing', [R('λυ'), C('ο'), E('μαι')], 'luomai', 'Eu me solto / sou solto'), p('2ª Sing', [R('λυ'), E('ῃ')], 'luēi', 'Tu te soltas / és solto'), p('3ª Sing', [R('λυ'), C('ε'), E('ται')], 'luetai', 'Ele/a se solta / é solto'), p('1ª Plur', [R('λυ'), C('ο'), E('μεθα')], 'luometha', 'Nós nos soltamos / somos soltos'), p('2ª Plur', [R('λυ'), C('ε'), E('σθε')], 'luesthe', 'Vós vos soltais / sois soltos'), p('3ª Plur', [R('λυ'), C('ο'), E('νται')], 'luontai', 'Eles/as se soltam / são soltos') ]
+                },
+                'Presente Infinitivo Ativo': { icons: [icons.presente, icons.infinitivo, icons.ativo], cards: [ p('Infinitivo', [R('λυ'), E('ειν')], 'luein', 'soltar') ] },
+            },
+            "Sistema do Imperfeito": {
+                'Imperfeito Indicativo Ativo': {
+                    icons: [icons.imperfeito, icons.indicativo, icons.ativo],
+                    cards: [ p('1ª Sing', [P('ἐ'), R('λυ'), C('ο'), E('ν')], 'eluon', 'Eu soltava'), p('2ª Sing', [P('ἐ'), R('λυ'), C('ε'), E('ς')], 'elues', 'Tu soltavas'), p('3ª Sing', [P('ἐ'), R('λυ'), E('ε(ν)')], 'elue(n)', 'Ele/a soltava'), p('1ª Plur', [P('ἐ'), R('λυ'), C('ο'), E('μεν')], 'eluomen', 'Nós soltávamos'), p('2ª Plur', [P('ἐ'), R('λυ'), C('ε'), E('τε')], 'eluete', 'Vós soltáveis'), p('3ª Plur', [P('ἐ'), R('λυ'), C('ο'), E('ν')], 'eluon', 'Eles/as soltavam') ]
+                },
+            },
+            "Sistema do Futuro": {
+                'Futuro Indicativo Ativo': {
+                    icons: [icons.futuro, icons.indicativo, icons.ativo],
+                    cards: [ p('1ª Sing', [R('λυ'), T('σ'), C('ω')], 'lusō', 'Eu soltarei'), p('2ª Sing', [R('λυ'), T('σ'), E('εις')], 'luseis', 'Tu soltarás'), p('3ª Sing', [R('λυ'), T('σ'), E('ει')], 'lusei', 'Ele/a soltará'), p('1ª Plur', [R('λυ'), T('σ'), C('ο'), E('μεν')], 'lusomen', 'Nós soltaremos'), p('2ª Plur', [R('λυ'), T('σ'), C('ε'), E('τε')], 'lusete', 'Vós soltareis'), p('3ª Plur', [R('λυ'), T('σ'), C('ο'), E('νσι(ν)')], 'lusousi(n)', 'Eles/as soltarão') ]
+                },
+                 'Futuro Indicativo Passivo': {
+                    icons: [icons.futuro, icons.indicativo, icons.passivo],
+                    cards: [ p('1ª Sing', [R('λυ'), T('θησ'), C('ο'), E('μαι')], 'luthēsomai', 'Serei solto'), p('2ª Sing', [R('λυ'), T('θησ'), E('ῃ')], 'luthēsēi', 'Serás solto'), p('3ª Sing', [R('λυ'), T('θησ'), C('ε'), E('ται')], 'luthēsetai', 'Será solto'), p('1ª Plur', [R('λυ'), T('θησ'), C('ο'), E('μεθα')], 'luthēsometha', 'Seremos soltos'), p('2ª Plur', [R('λυ'), T('θησ'), C('ε'), E('σθε')], 'luthēsesthe', 'Sereis soltos'), p('3ª Plur', [R('λυ'), T('θησ'), C('ο'), E('νται')], 'luthēsontai', 'Serão soltos') ]
+                },
+            },
+            "Sistema do Aoristo": {
+                'Aoristo Indicativo Ativo': {
+                    icons: [icons.aoristo, icons.indicativo, icons.ativo],
+                    cards: [ p('1ª Sing', [P('ἐ'), R('λυ'), T('σα')], 'elusa', 'Eu soltei'), p('2ª Sing', [P('ἐ'), R('λυ'), T('σα'), E('ς')], 'elusas', 'Tu soltaste'), p('3ª Sing', [P('ἐ'), R('λυ'), T('σε(ν)')], 'eluse(n)', 'Ele/a soltou'), p('1ª Plur', [P('ἐ'), R('λυ'), T('σα'), E('μεν')], 'elusamen', 'Nós soltamos'), p('2ª Plur', [P('ἐ'), R('λυ'), T('σα'), E('τε')], 'elusate', 'Vós soltastes'), p('3ª Plur', [P('ἐ'), R('λυ'), T('σα'), E('ν')], 'elusan', 'Eles/as soltaram') ]
+                },
+                'Aoristo Indicativo Passivo': {
+                    icons: [icons.aoristo, icons.indicativo, icons.passivo],
+                    cards: [ p('1ª Sing', [P('ἐ'), R('λυ'), T('θη'), E('ν')], 'eluthēn', 'Fui solto'), p('2ª Sing', [P('ἐ'), R('λυ'), T('θη'), E('ς')], 'eluthēs', 'Foste solto'), p('3ª Sing', [P('ἐ'), R('λυ'), T('θη')], 'eluthē', 'Foi solto'), p('1ª Plur', [P('ἐ'), R('λυ'), T('θη'), E('μεν')], 'eluthēmen', 'Fomos soltos'), p('2ª Plur', [P('ἐ'), R('λυ'), T('θη'), E('τε')], 'eluthēte', 'Fostes soltos'), p('3ª Plur', [P('ἐ'), R('λυ'), T('θη'), E('σαν')], 'eluthēsan', 'Foram soltos') ]
+                },
+            },
+            "Sistema do Perfeito": {
+                'Perfeito Indicativo Ativo': {
+                    icons: [icons.perfeito, icons.indicativo, icons.ativo],
+                    cards: [ p('1ª Sing', [P('λε'), R('λυ'), T('κ'), E('α')], 'leluka', 'Eu tenho soltado'), p('2ª Sing', [P('λε'), R('λυ'), T('κ'), E('ας')], 'lelukas', 'Tu tens soltado'), p('3ª Sing', [P('λε'), R('λυ'), T('κε(ν)')], 'leluke(n)', 'Ele/a tem soltado'), p('1ª Plur', [P('λε'), R('λυ'), T('κα'), E('μεν')], 'lelukamen', 'Nós temos soltado'), p('2ª Plur', [P('λε'), R('λυ'), T('κα'), E('τε')], 'lelukate', 'Vós tendes soltado'), p('3ª Plur', [P('λε'), R('λυ'), T('κα'), E('σι(ν)')], 'lelukasi(n)', 'Eles/as têm soltado') ]
+                },
+                'Perfeito Indicativo Méd/Pass': {
+                    icons: [icons.perfeito, icons.indicativo, icons.medio, icons.passivo],
+                    cards: [ p('1ª Sing', [P('λε'), R('λυ'), E('μαι')], 'lelumai', 'Tenho me soltado / sido solto'), p('2ª Sing', [P('λε'), R('λυ'), E('σαι')], 'lelusai', 'Tens te soltado / sido solto'), p('3ª Sing', [P('λε'), R('λυ'), E('ται')], 'lelutai', 'Tem se soltado / sido solto'), p('1ª Plur', [P('λε'), R('λυ'), E('μεθα')], 'lelumetha', 'Temos nos soltado / sido soltos'), p('2ª Plur', [P('λε'), R('λυ'), E('σθε')], 'lelusthe', 'Tendes vos soltado / sido soltos'), p('3ª Plur', [P('λε'), R('λυ'), E('νται')], 'leluntai', 'Têm se soltado / sido soltos') ]
+                },
+            }
+        };
+
+        let currentParadigmGroup = Object.keys(paradigms)[0];
+        let currentParadigmName = Object.keys(paradigms[currentParadigmGroup])[0];
+        let currentCardIndex = 0;
+        let isFlipped = false;
+
+        const card = document.getElementById('flashcard');
+        const cardFrontText = document.querySelector('#card-front p');
+        const greekWordPartsEl = document.getElementById('greek-word-parts');
+        const translitEl = document.getElementById('translit');
+        const funcEl = document.getElementById('func');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const cardCounter = document.getElementById('card-counter');
+        const paradigmSelect = document.getElementById('paradigm-select');
+        const paradigmSubtitle = document.getElementById('paradigm-subtitle');
+        const iconDisplay = document.getElementById('icon-display');
+
+        function updateTheme(color) {
+            const finalColor = color || 'slate';
+            cardFrontText.className = 'text-3xl font-semibold text-center';
+            prevBtn.className = prevBtn.className.replace(/focus:ring-\w+-\d+/g, '');
+            nextBtn.className = nextBtn.className.replace(/focus:ring-\w+-\d+/g, '');
+            cardFrontText.classList.add(`text-${finalColor}-700`);
+            document.querySelector('#card-back').className = `card-face card-back absolute w-full h-full flex items-center justify-center text-white rounded-xl shadow-lg p-4 bg-${finalColor}-600`;
+            translitEl.className = `text-lg mb-4 text-${finalColor}-200`;
+            prevBtn.classList.add(`focus:ring-${finalColor}-500`);
+            nextBtn.classList.add(`focus:ring-${finalColor}-500`);
+        }
+
+        function updateCardContent() {
+            const currentCards = paradigms[currentParadigmGroup][currentParadigmName].cards;
+            const currentCardData = currentCards[currentCardIndex];
+            cardFrontText.textContent = currentCardData.front;
+            
+            const { greek: greekParts, translit, func } = currentCardData.back;
+            greekWordPartsEl.innerHTML = greekParts.map(part => `<span class="part-${part.type}">${part.text}</span>`).join('');
+            translitEl.textContent = `(${translit})`;
+            funcEl.textContent = func;
+
+            cardCounter.textContent = `${currentCardIndex + 1} / ${currentCards.length}`;
+            prevBtn.disabled = currentCardIndex === 0;
+            nextBtn.disabled = currentCardIndex === currentCards.length - 1;
+        }
+        
+        function flipCard() {
+            isFlipped = !isFlipped;
+            card.classList.toggle('is-flipped');
+        }
+
+        function loadParadigm(group, name) {
+            if (isFlipped) flipCard();
+            currentParadigmGroup = group;
+            currentParadigmName = name;
+            currentCardIndex = 0;
+            const paradigmData = paradigms[group][name];
+            paradigmSubtitle.innerHTML = name;
+            iconDisplay.innerHTML = '';
+            if (paradigmData.icons) {
+                paradigmData.icons.forEach(icon => {
+                    const iconWrapper = document.createElement('div');
+                    iconWrapper.className = 'icon-container p-1 bg-slate-200 rounded-full';
+                    iconWrapper.innerHTML = icon.svg;
+                    iconWrapper.title = icon.title;
+                    iconDisplay.appendChild(iconWrapper);
+                });
+            }
+            const themeColor = paradigmData.icons && paradigmData.icons.length > 0 ? paradigmData.icons[0].svg.match(/class="text-([a-z]+)-/)[1] : 'slate';
+            updateTheme(themeColor);
+            setTimeout(updateCardContent, isFlipped ? 300 : 0);
+        }
+
+        function showNextCard() {
+            const currentCards = paradigms[currentParadigmGroup][currentParadigmName].cards;
+            if (currentCardIndex < currentCards.length - 1) {
+                currentCardIndex++;
+                if (isFlipped) {
+                    flipCard();
+                    setTimeout(updateCardContent, 300);
+                } else {
+                    updateCardContent();
+                }
+            }
+        }
+
+        function showPrevCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                if (isFlipped) {
+                    flipCard();
+                    setTimeout(updateCardContent, 300);
+                } else {
+                    updateCardContent();
+                }
+            }
+        }
+        
+        function populateSelect() {
+            paradigmSelect.innerHTML = '';
+            for (const groupName in paradigms) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = groupName;
+                for (const paradigmName in paradigms[groupName]) {
+                    const option = document.createElement('option');
+                    option.value = `${groupName}|${paradigmName}`;
+                    option.textContent = paradigmName;
+                    optgroup.appendChild(option);
+                }
+                paradigmSelect.appendChild(optgroup);
+            }
+        }
+
+        card.addEventListener('click', flipCard);
+        nextBtn.addEventListener('click', showNextCard);
+        prevBtn.addEventListener('click', showPrevCard);
+        paradigmSelect.addEventListener('change', (e) => {
+            const [group, name] = e.target.value.split('|');
+            loadParadigm(group, name);
+        });
+
+        window.onload = () => {
+            populateSelect();
+            loadParadigm(currentParadigmGroup, currentParadigmName);
+        };
+    </script>
+</body>
+</html>

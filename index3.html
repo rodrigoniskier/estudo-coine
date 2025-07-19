@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flashcards de Pronomes em Grego</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cardo:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; }
+        .greek-font { font-family: 'Cardo', serif; }
+        .scene { perspective: 1000px; }
+        .card { transform-style: preserve-3d; transition: transform 0.6s; cursor: pointer; }
+        .card.is-flipped { transform: rotateY(180deg); }
+        .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+        .card-back { transform: rotateY(180deg); }
+        select {
+            -webkit-appearance: none; -moz-appearance: none; appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.2em; padding-right: 2.5rem;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-md mx-auto">
+        <header class="text-center mb-4">
+            <h1 class="text-3xl font-bold text-slate-800">Flashcards de Pronomes</h1>
+            <p id="paradigm-subtitle" class="text-md text-slate-600 mt-2 h-6"></p>
+        </header>
+
+        <div class="mb-4">
+            <label for="paradigm-select" class="block text-sm font-medium text-slate-700 mb-1">Escolha o Pronome:</label>
+            <select id="paradigm-select" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"></select>
+        </div>
+
+        <div class="scene w-full h-64 mb-4">
+            <div id="flashcard" class="card relative w-full h-full">
+                <div id="card-front" class="card-face absolute w-full h-full flex items-center justify-center bg-white rounded-xl shadow-lg border border-slate-200 p-4">
+                    <p class="text-3xl font-semibold text-center"></p>
+                </div>
+                <div id="card-back" class="card-face card-back absolute w-full h-full flex items-center justify-center text-white rounded-xl shadow-lg p-4">
+                    <div class="text-center w-full">
+                        <p id="pronoun-greek" class="greek-font text-5xl font-bold"></p>
+                        <p id="pronoun-meaning" class="text-xl italic mt-2"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between mb-4">
+            <button id="prev-btn" class="px-6 py-3 bg-white rounded-lg shadow-md font-semibold hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">Anterior</button>
+            <div id="card-counter" class="text-slate-600 font-medium"></div>
+            <button id="next-btn" class="px-6 py-3 bg-white rounded-lg shadow-md font-semibold hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200">Próximo</button>
+        </div>
+    </div>
+
+    <script>
+        const p = (front, greek, meaning) => ({ front, back: { greek, meaning } });
+
+        const paradigms = {
+            "Pessoais": {
+                'ἐγώ (eu)': {
+                    color: 'blue',
+                    cards: [ p('Nom. Sing.', 'ἐγώ', 'eu'), p('Gen. Sing.', 'μου', 'de mim'), p('Dat. Sing.', 'μοι', 'a/para mim'), p('Acus. Sing.', 'με', 'me'), p('Nom. Plur.', 'ἡμεῖς', 'nós'), p('Gen. Plur.', 'ἡμῶν', 'de nós'), p('Dat. Plur.', 'ἡμῖν', 'a/para nós'), p('Acus. Plur.', 'ἡμᾶς', 'nos') ]
+                },
+                'σύ (tu)': {
+                    color: 'green',
+                    cards: [ p('Nom. Sing.', 'σύ', 'tu'), p('Gen. Sing.', 'σου', 'de ti'), p('Dat. Sing.', 'σοι', 'a/para ti'), p('Acus. Sing.', 'σε', 'te'), p('Nom. Plur.', 'ὑμεῖς', 'vós'), p('Gen. Plur.', 'ὑμῶν', 'de vós'), p('Dat. Plur.', 'ὑμῖν', 'a/para vós'), p('Acus. Plur.', 'ὑμᾶς', 'vos') ]
+                },
+                'αὐτός (ele, ela, ele mesmo)': {
+                    color: 'purple',
+                    cards: [
+                        p('Nom. Masc. Sing.', 'αὐτός', 'ele'), p('Gen. Masc. Sing.', 'αὐτοῦ', 'dele'), p('Dat. Masc. Sing.', 'αὐτῷ', 'a/para ele'), p('Acus. Masc. Sing.', 'αὐτόν', 'o'),
+                        p('Nom. Fem. Sing.', 'αὐτή', 'ela'), p('Gen. Fem. Sing.', 'αὐτῆς', 'dela'), p('Dat. Fem. Sing.', 'αὐτῇ', 'a/para ela'), p('Acus. Fem. Sing.', 'αὐτήν', 'a'),
+                        p('Nom. Neut. Sing.', 'αὐτό', 'isto'), p('Gen. Neut. Sing.', 'αὐτοῦ', 'disto'), p('Dat. Neut. Sing.', 'αὐτῷ', 'a/para isto'), p('Acus. Neut. Sing.', 'αὐτό', 'isto'),
+                        p('Nom. Masc. Plur.', 'αὐτοί', 'eles'), p('Nom. Fem. Plur.', 'αὐταί', 'elas'), p('Nom. Neut. Plur.', 'αὐτά', 'estas coisas'),
+                    ]
+                }
+            },
+            "Demonstrativos": {
+                'οὗτος (este)': {
+                    color: 'orange',
+                    cards: [
+                        p('Nom. Masc. Sing.', 'οὗτος', 'este'), p('Gen. Masc. Sing.', 'τούτου', 'deste'), p('Dat. Masc. Sing.', 'τούτῳ', 'a/para este'), p('Acus. Masc. Sing.', 'τοῦτον', 'este'),
+                        p('Nom. Fem. Sing.', 'αὕτη', 'esta'), p('Gen. Fem. Sing.', 'ταύτης', 'desta'), p('Dat. Fem. Sing.', 'ταύτῃ', 'a/para esta'), p('Acus. Fem. Sing.', 'ταύτην', 'esta'),
+                        p('Nom. Neut. Sing.', 'τοῦτο', 'isto'), p('Gen. Neut. Sing.', 'τούτου', 'disto'), p('Dat. Neut. Sing.', 'τούτῳ', 'a/para isto'), p('Acus. Neut. Sing.', 'τοῦτο', 'isto'),
+                    ]
+                },
+                'ἐκεῖνος (aquele)': {
+                    color: 'red',
+                    cards: [
+                        p('Nom. Masc. Sing.', 'ἐκεῖνος', 'aquele'), p('Gen. Masc. Sing.', 'ἐκείνου', 'daquele'), p('Dat. Masc. Sing.', 'ἐκείνῳ', 'a/para aquele'), p('Acus. Masc. Sing.', 'ἐκεῖνον', 'aquele'),
+                        p('Nom. Fem. Sing.', 'ἐκείνη', 'aquela'), p('Gen. Fem. Sing.', 'ἐκείνης', 'daquela'), p('Dat. Fem. Sing.', 'ἐκείνῃ', 'a/para aquela'), p('Acus. Fem. Sing.', 'ἐκείνην', 'aquela'),
+                        p('Nom. Neut. Sing.', 'ἐκεῖνο', 'aquilo'), p('Gen. Neut. Sing.', 'ἐκείνου', 'daquilo'), p('Dat. Neut. Sing.', 'ἐκείνῳ', 'a/para aquilo'), p('Acus. Neut. Sing.', 'ἐκεῖνο', 'aquilo'),
+                    ]
+                }
+            },
+            "Relativos": {
+                'ὅς, ἥ, ὅ (que, o qual)': {
+                    color: 'teal',
+                    cards: [
+                        p('Nom. Masc. Sing.', 'ὅς', 'que, o qual'), p('Gen. Masc. Sing.', 'οὗ', 'de quem, do qual'), p('Dat. Masc. Sing.', 'ᾧ', 'a quem, ao qual'), p('Acus. Masc. Sing.', 'ὅν', 'que, o qual'),
+                        p('Nom. Fem. Sing.', 'ἥ', 'que, a qual'), p('Gen. Fem. Sing.', 'ἧς', 'de quem, da qual'), p('Dat. Fem. Sing.', 'ᾗ', 'a quem, à qual'), p('Acus. Fem. Sing.', 'ἥν', 'que, a qual'),
+                        p('Nom. Neut. Sing.', 'ὅ', 'que, o que'), p('Gen. Neut. Sing.', 'οὗ', 'de que, do que'), p('Dat. Neut. Sing.', 'ᾧ', 'a que, ao que'), p('Acus. Neut. Sing.', 'ὅ', 'que, o que'),
+                    ]
+                }
+            },
+            "Interrogativos e Indefinidos": {
+                'τίς, τί (quem? que?)': {
+                    color: 'yellow',
+                    cards: [
+                        p('Nom. Masc/Fem Sing.', 'τίς', 'quem?'), p('Gen. Masc/Fem Sing.', 'τίνος', 'de quem?'), p('Dat. Masc/Fem Sing.', 'τίνι', 'a quem?'), p('Acus. Masc/Fem Sing.', 'τίνα', 'quem?'),
+                        p('Nom. Neut. Sing.', 'τί', 'que? o que?'), p('Acus. Neut. Sing.', 'τί', 'que? o que?'),
+                        p('Nom. Masc/Fem Plur.', 'τίνες', 'quem?'), p('Acus. Masc/Fem Plur.', 'τίνας', 'quem?'),
+                    ]
+                },
+                'τις, τι (alguém, algo)': {
+                    color: 'lime',
+                    cards: [
+                        p('Nom. Masc/Fem Sing.', 'τις', 'alguém, um certo'), p('Gen. Masc/Fem Sing.', 'τινος', 'de alguém'), p('Dat. Masc/Fem Sing.', 'τινι', 'a alguém'), p('Acus. Masc/Fem Sing.', 'τινα', 'alguém'),
+                        p('Nom. Neut. Sing.', 'τι', 'algo, alguma coisa'), p('Acus. Neut. Sing.', 'τι', 'algo, alguma coisa'),
+                    ]
+                }
+            },
+            "Reflexivos": {
+                'ἐμαυτοῦ (de mim mesmo)': {
+                    color: 'cyan',
+                    cards: [ p('Gen. Masc. Sing.', 'ἐμαυτοῦ', 'de mim mesmo'), p('Dat. Masc. Sing.', 'ἐμαυτῷ', 'a mim mesmo'), p('Acus. Masc. Sing.', 'ἐμαυτόν', 'a mim mesmo'), p('Gen. Fem. Sing.', 'ἐμαυτῆς', 'de mim mesma'), p('Dat. Fem. Sing.', 'ἐμαυτῇ', 'a mim mesma'), p('Acus. Fem. Sing.', 'ἐμαυτήν', 'a mim mesma') ]
+                },
+                'σεαυτοῦ (de ti mesmo)': {
+                    color: 'sky',
+                    cards: [ p('Gen. Masc. Sing.', 'σεαυτοῦ', 'de ti mesmo'), p('Dat. Masc. Sing.', 'σεαυτῷ', 'a ti mesmo'), p('Acus. Masc. Sing.', 'σεαυτόν', 'a ti mesmo'), p('Gen. Fem. Sing.', 'σεαυτῆς', 'de ti mesma'), p('Dat. Fem. Sing.', 'σεαυτῇ', 'a ti mesma'), p('Acus. Fem. Sing.', 'σεαυτήν', 'a ti mesma') ]
+                },
+                'ἑαυτοῦ (de si mesmo)': {
+                    color: 'indigo',
+                    cards: [ p('Gen. Masc. Sing.', 'ἑαυτοῦ', 'de si mesmo'), p('Dat. Masc. Sing.', 'ἑαυτῷ', 'a si mesmo'), p('Acus. Masc. Sing.', 'ἑαυτόν', 'a si mesmo'), p('Gen. Fem. Sing.', 'ἑαυτῆς', 'de si mesma'), p('Dat. Fem. Sing.', 'ἑαυτῇ', 'a si mesma'), p('Acus. Fem. Sing.', 'ἑαυτήν', 'a si mesma'), p('Gen. Neut. Sing.', 'ἑαυτοῦ', 'de si mesmo'), p('Dat. Neut. Sing.', 'ἑαυτῷ', 'a si mesmo'), p('Acus. Neut. Sing.', 'ἑαυτό', 'a si mesmo') ]
+                }
+            }
+        };
+
+        let currentParadigmGroup = Object.keys(paradigms)[0];
+        let currentParadigmName = Object.keys(paradigms[currentParadigmGroup])[0];
+        let currentCardIndex = 0;
+        let isFlipped = false;
+
+        const card = document.getElementById('flashcard');
+        const cardFrontText = document.querySelector('#card-front p');
+        const pronounGreekEl = document.getElementById('pronoun-greek');
+        const pronounMeaningEl = document.getElementById('pronoun-meaning');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const cardCounter = document.getElementById('card-counter');
+        const paradigmSelect = document.getElementById('paradigm-select');
+        const paradigmSubtitle = document.getElementById('paradigm-subtitle');
+
+        function updateTheme(color) {
+            const finalColor = color || 'slate';
+            cardFrontText.className = 'text-3xl font-semibold text-center';
+            document.querySelector('#card-back').className = `card-face card-back absolute w-full h-full flex items-center justify-center text-white rounded-xl shadow-lg p-4 bg-${finalColor}-600`;
+            cardFrontText.classList.add(`text-${finalColor}-700`);
+            pronounMeaningEl.className = `text-xl italic mt-2 text-${finalColor}-200`;
+        }
+
+        function updateCardContent() {
+            const paradigmData = paradigms[currentParadigmGroup][currentParadigmName];
+            const currentCardData = paradigmData.cards[currentCardIndex];
+            cardFrontText.textContent = currentCardData.front;
+            
+            const { greek, meaning } = currentCardData.back;
+            pronounGreekEl.textContent = greek;
+            pronounMeaningEl.textContent = meaning;
+
+            cardCounter.textContent = `${currentCardIndex + 1} / ${paradigmData.cards.length}`;
+            prevBtn.disabled = currentCardIndex === 0;
+            nextBtn.disabled = currentCardIndex === paradigmData.cards.length - 1;
+        }
+        
+        function flipCard() {
+            isFlipped = !isFlipped;
+            card.classList.toggle('is-flipped');
+        }
+
+        function loadParadigm(group, name) {
+            if (isFlipped) flipCard();
+            currentParadigmGroup = group;
+            currentParadigmName = name;
+            currentCardIndex = 0;
+            const paradigmData = paradigms[group][name];
+            paradigmSubtitle.innerHTML = `${group}: <span class="greek-font">${name}</span>`;
+            
+            updateTheme(paradigmData.color);
+            setTimeout(updateCardContent, isFlipped ? 300 : 0);
+        }
+
+        function showNextCard() {
+            const currentCards = paradigms[currentParadigmGroup][currentParadigmName].cards;
+            if (currentCardIndex < currentCards.length - 1) {
+                currentCardIndex++;
+                if (isFlipped) {
+                    flipCard();
+                    setTimeout(updateCardContent, 300);
+                } else {
+                    updateCardContent();
+                }
+            }
+        }
+
+        function showPrevCard() {
+            if (currentCardIndex > 0) {
+                currentCardIndex--;
+                if (isFlipped) {
+                    flipCard();
+                    setTimeout(updateCardContent, 300);
+                } else {
+                    updateCardContent();
+                }
+            }
+        }
+        
+        function populateSelect() {
+            paradigmSelect.innerHTML = '';
+            for (const groupName in paradigms) {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = groupName;
+                for (const paradigmName in paradigms[groupName]) {
+                    const option = document.createElement('option');
+                    option.value = `${groupName}|${paradigmName}`;
+                    option.textContent = paradigmName;
+                    optgroup.appendChild(option);
+                }
+                paradigmSelect.appendChild(optgroup);
+            }
+        }
+
+        card.addEventListener('click', flipCard);
+        nextBtn.addEventListener('click', showNextCard);
+        prevBtn.addEventListener('click', showPrevCard);
+        paradigmSelect.addEventListener('change', (e) => {
+            const [group, name] = e.target.value.split('|');
+            loadParadigm(group, name);
+        });
+
+        window.onload = () => {
+            populateSelect();
+            loadParadigm(currentParadigmGroup, currentParadigmName);
+        };
+    </script>
+</body>
+</html>
