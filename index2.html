@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Flashcards de Preposições em Grego (Completo)</title>
+    <title>Flashcards de Preposições em Grego</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,12 +16,6 @@
         .card.is-flipped { transform: rotateY(180deg); }
         .card-face { backface-visibility: hidden; -webkit-backface-visibility: hidden; }
         .card-back { transform: rotateY(180deg); }
-        select {
-            -webkit-appearance: none; -moz-appearance: none; appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-            background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 1.2em; padding-right: 2.5rem;
-        }
-        .icon-container svg { width: 1.25rem; height: 1.25rem; }
         .part-prep { color: #fca5a5; font-weight: bold; } /* Vermelho claro */
         .part-object { color: #93c5fd; } /* Azul claro */
     </style>
@@ -29,23 +23,15 @@
 <body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
 
     <div class="w-full max-w-md mx-auto">
-        <header class="text-center mb-4">
+        <header class="text-center mb-8">
             <h1 class="text-3xl font-bold text-slate-800">Flashcards de Preposições</h1>
-            <div class="flex items-center justify-center mt-2 space-x-2 h-8">
-                <p id="paradigm-subtitle" class="text-md text-slate-600"></p>
-                <div id="icon-display" class="flex space-x-1.5"></div>
-            </div>
+            <p class="text-md text-slate-600 mt-2">Navegue por todas as preposições e seus usos.</p>
         </header>
-
-        <div class="mb-4">
-            <label for="paradigm-select" class="block text-sm font-medium text-slate-700 mb-1">Escolha a Preposição:</label>
-            <select id="paradigm-select" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition"></select>
-        </div>
 
         <div class="scene w-full h-64 mb-4">
             <div id="flashcard" class="card relative w-full h-full">
                 <div id="card-front" class="card-face absolute w-full h-full flex items-center justify-center bg-white rounded-xl shadow-lg border border-slate-200 p-4">
-                    <p class="text-4xl font-semibold text-center greek-font"></p>
+                    <p class="text-4xl font-semibold text-center greek-font text-slate-700"></p>
                 </div>
                 <div id="card-back" class="card-face card-back absolute w-full h-full flex items-center justify-center text-white rounded-xl shadow-lg p-4 bg-slate-600">
                     <div class="text-center w-full">
@@ -62,9 +48,9 @@
         </div>
 
         <div class="flex items-center justify-between mb-4">
-            <button id="prev-btn" class="px-6 py-3 bg-white rounded-lg shadow-md font-semibold hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">Anterior</button>
+            <button id="prev-btn" class="px-6 py-3 bg-white rounded-lg shadow-md font-semibold hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed">Anterior</button>
             <div id="card-counter" class="text-slate-600 font-medium"></div>
-            <button id="next-btn" class="px-6 py-3 bg-white rounded-lg shadow-md font-semibold hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 transition-all duration-200">Próximo</button>
+            <button id="next-btn" class="px-6 py-3 bg-white rounded-lg shadow-md font-semibold hover:bg-slate-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-all duration-200">Próximo</button>
         </div>
         
         <div id="prep-legend" class="p-3 bg-white rounded-lg shadow-md text-xs text-slate-600">
@@ -77,114 +63,41 @@
     </div>
 
     <script>
-        const icons = {
-            genitivo: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-blue-500"><path d="M12 8v4m0 4h.01M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"></path></svg>`, title: 'Genitivo' },
-            dativo: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-green-500"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>`, title: 'Dativo' },
-            acusativo: { svg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-red-500"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"></path><path d="M12 7h.01"></path></svg>`, title: 'Acusativo' },
-        };
-        
         const PREP = (text) => ({ text, type: 'prep' });
         const OBJ = (text) => ({ text, type: 'object' });
         const p_prep = (front, meaning, caseType, example_parts, example_trans) => ({ front, back: { meaning, case: caseType, example_greek: example_parts, example_trans } });
 
-        const paradigms = {
-            'ἀνά': {
-                icons: [icons.acusativo],
-                cards: [ p_prep('ἀνά + Acusativo', 'para cima, entre', 'Acusativo', [PREP('ἀνὰ'), OBJ(' μέσον αὐτῶν')], 'entre eles') ]
-            },
-            'ἀντί': {
-                icons: [icons.genitivo],
-                cards: [ p_prep('ἀντί + Genitivo', 'em vez de, por', 'Genitivo', [PREP('ἀντὶ'), OBJ(' τοῦ Ἰωάννου')], 'em vez de João') ]
-            },
-            'ἀπό': {
-                icons: [icons.genitivo],
-                cards: [ p_prep('ἀπό + Genitivo', 'de, desde, para longe de', 'Genitivo', [PREP('ἀπὸ'), OBJ(' τῆς Γαλιλαίας')], 'da Galileia') ]
-            },
-            'διά': {
-                icons: [icons.genitivo, icons.acusativo],
-                cards: [
-                    p_prep('διά + Genitivo', 'através de, por meio de', 'Genitivo', [PREP('διὰ'), OBJ(' τοῦ προφήτου')], 'através do profeta'),
-                    p_prep('διά + Acusativo', 'por causa de', 'Acusativo', [PREP('διὰ'), OBJ(' τοῦτο')], 'por causa disto'),
-                ]
-            },
-            'εἰς': {
-                icons: [icons.acusativo],
-                cards: [ p_prep('εἰς + Acusativo', 'para dentro de, para', 'Acusativo', [PREP('εἰς'), OBJ(' τὸν οἶκον')], 'para dentro da casa') ]
-            },
-            'ἐκ': {
-                icons: [icons.genitivo],
-                cards: [ p_prep('ἐκ (ἐξ) + Genitivo', 'de, para fora de', 'Genitivo', [PREP('ἐκ'), OBJ(' τῆς πόλεως')], 'para fora da cidade') ]
-            },
-            'ἐν': {
-                icons: [icons.dativo],
-                cards: [ p_prep('ἐν + Dativo', 'em, no, entre', 'Dativo', [PREP('ἐν'), OBJ(' τῷ κόσμῳ')], 'no mundo') ]
-            },
-            'ἐπί': {
-                icons: [icons.genitivo, icons.dativo, icons.acusativo],
-                cards: [
-                    p_prep('ἐπί + Genitivo', 'sobre, no tempo de', 'Genitivo', [PREP('ἐπὶ'), OBJ(' τῆς γῆς')], 'sobre a terra'),
-                    p_prep('ἐπί + Dativo', 'sobre, com base em', 'Dativo', [PREP('ἐπὶ'), OBJ(' τῷ ὀνόματί μου')], 'com base no meu nome'),
-                    p_prep('ἐπί + Acusativo', 'sobre, para, contra', 'Acusativo', [PREP('ἐπὶ'), OBJ(' τὸν τόπον')], 'para o lugar'),
-                ]
-            },
-            'κατά': {
-                icons: [icons.genitivo, icons.acusativo],
-                cards: [
-                    p_prep('κατά + Genitivo', 'para baixo de, contra', 'Genitivo', [PREP('κατ’'), OBJ(' αὐτοῦ')], 'contra ele'),
-                    p_prep('κατά + Acusativo', 'segundo, de acordo com', 'Acusativo', [PREP('κατὰ'), OBJ(' σάρκα')], 'segundo a carne'),
-                ]
-            },
-            'μετά': {
-                icons: [icons.genitivo, icons.acusativo],
-                cards: [
-                    p_prep('μετά + Genitivo', 'com (companhia)', 'Genitivo', [PREP('μετ’'), OBJ(' ἐμοῦ')], 'comigo'),
-                    p_prep('μετά + Acusativo', 'depois de', 'Acusativo', [PREP('μετὰ'), OBJ(' ταῦτα')], 'depois destas coisas'),
-                ]
-            },
-            'παρά': {
-                icons: [icons.genitivo, icons.dativo, icons.acusativo],
-                cards: [
-                    p_prep('παρά + Genitivo', 'de (da parte de)', 'Genitivo', [PREP('παρὰ'), OBJ(' τοῦ πατρός')], 'da parte do Pai'),
-                    p_prep('παρά + Dativo', 'ao lado de, na presença de', 'Dativo', [PREP('παρὰ'), OBJ(' τῷ θεῷ')], 'na presença de Deus'),
-                    p_prep('παρά + Acusativo', 'ao longo de, contra', 'Acusativo', [PREP('παρὰ'), OBJ(' τὴν ὁδόν')], 'ao longo do caminho'),
-                ]
-            },
-            'περί': {
-                icons: [icons.genitivo, icons.acusativo],
-                cards: [
-                    p_prep('περί + Genitivo', 'acerca de, sobre', 'Genitivo', [PREP('περὶ'), OBJ(' τῶν ἁμαρτιῶν')], 'acerca dos pecados'),
-                    p_prep('περί + Acusativo', 'ao redor de', 'Acusativo', [PREP('περὶ'), OBJ(' τὸν τόπον')], 'ao redor do lugar'),
-                ]
-            },
-            'πρό': {
-                icons: [icons.genitivo],
-                cards: [ p_prep('πρό + Genitivo', 'antes de', 'Genitivo', [PREP('πρὸ'), OBJ(' τοῦ πάσχα')], 'antes da Páscoa') ]
-            },
-            'πρός': {
-                icons: [icons.acusativo],
-                cards: [ p_prep('πρός + Acusativo', 'para, para junto de', 'Acusativo', [PREP('πρὸς'), OBJ(' τὸν θεόν')], 'para Deus') ]
-            },
-            'σύν': {
-                icons: [icons.dativo],
-                cards: [ p_prep('σύν + Dativo', 'com (juntamente com)', 'Dativo', [PREP('σὺν'), OBJ(' τοῖς μαθηταῖς')], 'juntamente com os discípulos') ]
-            },
-            'ὑπέρ': {
-                icons: [icons.genitivo, icons.acusativo],
-                cards: [
-                    p_prep('ὑπέρ + Genitivo', 'em favor de, por', 'Genitivo', [PREP('ὑπὲρ'), OBJ(' ἡμῶν')], 'em nosso favor'),
-                    p_prep('ὑπέρ + Acusativo', 'acima de, mais que', 'Acusativo', [PREP('ὑπὲρ'), OBJ(' πάντα')], 'acima de tudo'),
-                ]
-            },
-            'ὑπό': {
-                icons: [icons.genitivo, icons.acusativo],
-                cards: [
-                    p_prep('ὑπό + Genitivo', 'por (agente)', 'Genitivo', [PREP('ὑπὸ'), OBJ(' τοῦ πνεύματος')], 'pelo Espírito'),
-                    p_prep('ὑπό + Acusativo', 'debaixo de', 'Acusativo', [PREP('ὑπὸ'), OBJ(' τὸν νόμον')], 'debaixo da lei'),
-                ]
-            },
-        };
+        // Lista única e completa de todos os flashcards de preposições
+        const flashcards = [
+            p_prep('ἀνά + Acusativo', 'para cima, entre', 'Acusativo', [PREP('ἀνὰ'), OBJ(' μέσον αὐτῶν')], 'entre eles'),
+            p_prep('ἀντί + Genitivo', 'em vez de, por', 'Genitivo', [PREP('ἀντὶ'), OBJ(' τοῦ Ἰωάννου')], 'em vez de João'),
+            p_prep('ἀπό + Genitivo', 'de, desde, para longe de', 'Genitivo', [PREP('ἀπὸ'), OBJ(' τῆς Γαλιλαίας')], 'da Galileia'),
+            p_prep('διά + Genitivo', 'através de, por meio de', 'Genitivo', [PREP('διὰ'), OBJ(' τοῦ προφήτου')], 'através do profeta'),
+            p_prep('διά + Acusativo', 'por causa de', 'Acusativo', [PREP('διὰ'), OBJ(' τοῦτο')], 'por causa disto'),
+            p_prep('εἰς + Acusativo', 'para dentro de, para', 'Acusativo', [PREP('εἰς'), OBJ(' τὸν οἶκον')], 'para dentro da casa'),
+            p_prep('ἐκ (ἐξ) + Genitivo', 'de, para fora de', 'Genitivo', [PREP('ἐκ'), OBJ(' τῆς πόλεως')], 'para fora da cidade'),
+            p_prep('ἐν + Dativo', 'em, no, entre', 'Dativo', [PREP('ἐν'), OBJ(' τῷ κόσμῳ')], 'no mundo'),
+            p_prep('ἐπί + Genitivo', 'sobre, no tempo de', 'Genitivo', [PREP('ἐπὶ'), OBJ(' τῆς γῆς')], 'sobre a terra'),
+            p_prep('ἐπί + Dativo', 'sobre, com base em', 'Dativo', [PREP('ἐπὶ'), OBJ(' τῷ ὀνόματί μου')], 'com base no meu nome'),
+            p_prep('ἐπί + Acusativo', 'sobre, para, contra', 'Acusativo', [PREP('ἐπὶ'), OBJ(' τὸν τόπον')], 'para o lugar'),
+            p_prep('κατά + Genitivo', 'para baixo de, contra', 'Genitivo', [PREP('κατ’'), OBJ(' αὐτοῦ')], 'contra ele'),
+            p_prep('κατά + Acusativo', 'segundo, de acordo com', 'Acusativo', [PREP('κατὰ'), OBJ(' σάρκα')], 'segundo a carne'),
+            p_prep('μετά + Genitivo', 'com (companhia)', 'Genitivo', [PREP('μετ’'), OBJ(' ἐμοῦ')], 'comigo'),
+            p_prep('μετά + Acusativo', 'depois de', 'Acusativo', [PREP('μετὰ'), OBJ(' ταῦτα')], 'depois destas coisas'),
+            p_prep('παρά + Genitivo', 'de (da parte de)', 'Genitivo', [PREP('παρὰ'), OBJ(' τοῦ πατρός')], 'da parte do Pai'),
+            p_prep('παρά + Dativo', 'ao lado de, na presença de', 'Dativo', [PREP('παρὰ'), OBJ(' τῷ θεῷ')], 'na presença de Deus'),
+            p_prep('παρά + Acusativo', 'ao longo de, contra', 'Acusativo', [PREP('παρὰ'), OBJ(' τὴν ὁδόν')], 'ao longo do caminho'),
+            p_prep('περί + Genitivo', 'acerca de, sobre', 'Genitivo', [PREP('περὶ'), OBJ(' τῶν ἁμαρτιῶν')], 'acerca dos pecados'),
+            p_prep('περί + Acusativo', 'ao redor de', 'Acusativo', [PREP('περὶ'), OBJ(' τὸν τόπον')], 'ao redor do lugar'),
+            p_prep('πρό + Genitivo', 'antes de', 'Genitivo', [PREP('πρὸ'), OBJ(' τοῦ πάσχα')], 'antes da Páscoa'),
+            p_prep('πρός + Acusativo', 'para, para junto de', 'Acusativo', [PREP('πρὸς'), OBJ(' τὸν θεόν')], 'para Deus'),
+            p_prep('σύν + Dativo', 'com (juntamente com)', 'Dativo', [PREP('σὺν'), OBJ(' τοῖς μαθηταῖς')], 'juntamente com os discípulos'),
+            p_prep('ὑπέρ + Genitivo', 'em favor de, por', 'Genitivo', [PREP('ὑπὲρ'), OBJ(' ἡμῶν')], 'em nosso favor'),
+            p_prep('ὑπέρ + Acusativo', 'acima de, mais que', 'Acusativo', [PREP('ὑπὲρ'), OBJ(' πάντα')], 'acima de tudo'),
+            p_prep('ὑπό + Genitivo', 'por (agente)', 'Genitivo', [PREP('ὑπὸ'), OBJ(' τοῦ πνεύματος')], 'pelo Espírito'),
+            p_prep('ὑπό + Acusativo', 'debaixo de', 'Acusativo', [PREP('ὑπὸ'), OBJ(' τὸν νόμον')], 'debaixo da lei'),
+        ];
 
-        let currentParadigmName = Object.keys(paradigms)[0];
         let currentCardIndex = 0;
         let isFlipped = false;
 
@@ -197,24 +110,9 @@
         const prevBtn = document.getElementById('prev-btn');
         const nextBtn = document.getElementById('next-btn');
         const cardCounter = document.getElementById('card-counter');
-        const paradigmSelect = document.getElementById('paradigm-select');
-        const paradigmSubtitle = document.getElementById('paradigm-subtitle');
-        const iconDisplay = document.getElementById('icon-display');
-
-        function updateTheme(color) {
-            const finalColor = color || 'slate';
-            cardFrontText.className = 'text-4xl font-semibold text-center greek-font';
-            prevBtn.className = prevBtn.className.replace(/focus:ring-\w+-\d+/g, '');
-            nextBtn.className = nextBtn.className.replace(/focus:ring-\w+-\d+/g, '');
-            cardFrontText.classList.add(`text-${finalColor}-700`);
-            document.querySelector('#card-back').className = `card-face card-back absolute w-full h-full flex items-center justify-center text-white rounded-xl shadow-lg p-4 bg-slate-600`;
-            prevBtn.classList.add(`focus:ring-${finalColor}-500`);
-            nextBtn.classList.add(`focus:ring-${finalColor}-500`);
-        }
 
         function updateCardContent() {
-            const paradigmData = paradigms[currentParadigmName];
-            const currentCardData = paradigmData.cards[currentCardIndex];
+            const currentCardData = flashcards[currentCardIndex];
             cardFrontText.textContent = currentCardData.front;
             
             const { meaning, case: caseType, example_greek, example_trans } = currentCardData.back;
@@ -223,9 +121,9 @@
             prepExampleGreekEl.innerHTML = example_greek.map(part => `<span class="part-${part.type}">${part.text}</span>`).join(' ');
             prepExampleTransEl.textContent = `"${example_trans}"`;
 
-            cardCounter.textContent = `${currentCardIndex + 1} / ${paradigmData.cards.length}`;
+            cardCounter.textContent = `${currentCardIndex + 1} / ${flashcards.length}`;
             prevBtn.disabled = currentCardIndex === 0;
-            nextBtn.disabled = currentCardIndex === paradigmData.cards.length - 1;
+            nextBtn.disabled = currentCardIndex === flashcards.length - 1;
         }
         
         function flipCard() {
@@ -233,31 +131,8 @@
             card.classList.toggle('is-flipped');
         }
 
-        function loadParadigm(name) {
-            if (isFlipped) flipCard();
-            currentParadigmName = name;
-            currentCardIndex = 0;
-            const paradigmData = paradigms[name];
-            paradigmSubtitle.innerHTML = `Preposição: <span class="greek-font">${name}</span>`;
-            
-            iconDisplay.innerHTML = '';
-            if (paradigmData.icons) {
-                paradigmData.icons.forEach(icon => {
-                    const iconWrapper = document.createElement('div');
-                    iconWrapper.className = 'icon-container p-1 bg-slate-200 rounded-full';
-                    iconWrapper.innerHTML = icon.svg;
-                    iconWrapper.title = icon.title;
-                    iconDisplay.appendChild(iconWrapper);
-                });
-            }
-            const themeColor = 'slate';
-            updateTheme(themeColor);
-            setTimeout(updateCardContent, isFlipped ? 300 : 0);
-        }
-
         function showNextCard() {
-            const currentCards = paradigms[currentParadigmName].cards;
-            if (currentCardIndex < currentCards.length - 1) {
+            if (currentCardIndex < flashcards.length - 1) {
                 currentCardIndex++;
                 if (isFlipped) {
                     flipCard();
@@ -280,26 +155,12 @@
             }
         }
         
-        function populateSelect() {
-            paradigmSelect.innerHTML = '';
-            for (const name in paradigms) {
-                const option = document.createElement('option');
-                option.value = name;
-                option.textContent = name;
-                paradigmSelect.appendChild(option);
-            }
-        }
-
         card.addEventListener('click', flipCard);
         nextBtn.addEventListener('click', showNextCard);
         prevBtn.addEventListener('click', showPrevCard);
-        paradigmSelect.addEventListener('change', (e) => {
-            loadParadigm(e.target.value);
-        });
 
         window.onload = () => {
-            populateSelect();
-            loadParadigm(currentParadigmName);
+            updateCardContent();
         };
     </script>
 </body>
